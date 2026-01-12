@@ -1,0 +1,38 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-12T23:06:20.323773Z",
+    "tool": {
+      "vendor": "PatScanner",
+      "name": "pat_scanner",
+      "version": "0.1.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "requests",
+      "purl": "pkg:pypi/requests@2.20.0",
+      "version": "2.20.0"
+    },
+    {
+      "type": "library",
+      "name": "flask",
+      "purl": "pkg:pypi/flask@0.12",
+      "version": "0.12"
+    },
+    {
+      "type": "library",
+      "name": "yaml",
+      "purl": "pkg:pypi/yaml",
+      "properties": [
+        {
+          "name": "detection_method",
+          "value": "code_analysis"
+        }
+      ]
+    }
+  ]
+}
