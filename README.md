@@ -8,12 +8,14 @@ It uses a hybrid approach: parsing package manifests (like `build.gradle`, `requ
 
 - **SBOM Generation**: Creates a CycloneDX 1.4 JSON SBOM.
 - **Hybrid Detection**:
-    - **Manifest Parsing**: Reads declared dependencies from build files.
-    - **Code Analysis**: Scans source files for imports (`import ...`, `use ...`) to detect libraries that might be missing from manifests.
+    - **Manifest Parsing**: Reads declared dependencies from build files (`pom.xml`, `requirements.txt`, etc.).
+    - **Code Analysis**: Scans source files for imports (`import ...`) to detect libraries that might be missing from manifests.
+    - **Environment Version Detection**: Attempts to resolve versions for Python code imports from the current environment.
 - **Vulnerability Scanning**: Automatically feeds the generated SBOM into `osv-scanner` to detect CVEs.
+- **Improved Reporting**: Clear distinction between successful scans, no vulnerabilities found, and scan failures.
 - **Multi-Language Support**:
-    - **Java**: `build.gradle` parsing + `.java` import scanning.
-    - **Python**: `requirements.txt` parsing + `.py` AST import scanning.
+    - **Java**: `pom.xml` (Maven) parsing, `build.gradle` (reference) + `.java` import scanning.
+    - **Python**: `requirements.txt` parsing + `.py` code import scanning with version resolution.
     - **PHP**: `composer.json` parsing + `.php` use statement scanning.
 
 ## Prerequisites
@@ -58,14 +60,6 @@ python3 pat_scanner.py -t .
 # Scan a specific Python project and save SBOM to custom path
 python3 pat_scanner.py -t ./my-app -l python -o my-app-sbom.json
 ```
-
-## How if Works
-
-1. **Scan Phase**: The tool iterates through the target directory.
-    - It looks for manifest files (`requirements.txt`, etc.) to get exact versions.
-    - It parses code files (`.py`, `.java`, etc.) to find imports. Imports not found in manifests are added as "detected via code" (versionless).
-2. **SBOM Phase**: Consolidates findings into a CycloneDX JSON file.
-3. **Audit Phase**: Executes `osv-scanner --sbom=sbom.json` and prints the vulnerability report to the console.
 
 ## License
 

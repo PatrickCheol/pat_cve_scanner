@@ -45,8 +45,68 @@ class JavaScanner(BaseLanguageScanner):
         return found_deps
 
     def _scan_maven_pom(self) -> List[Dependency]:
-        # Placeholder for pom.xml support
-        return []
+        found_deps = []
+        pom_files = []
+        import xml.etree.ElementTree as ET
+
+        for root, dirs, files in os.walk(self.target_dir):
+            for file in files:
+                if file == "pom.xml":
+                    pom_files.append(os.path.join(root, file))
+        
+        # Simple property resolver
+        def resolve_property(val, properties):
+            if not val: return None
+            if str(val).startswith("${") and str(val).endswith("}"):
+                prop_name = val[2:-1]
+                return properties.get(prop_name, val)
+            return val
+
+        for p_file in pom_files:
+            try:
+                tree = ET.parse(p_file)
+                root = tree.getroot()
+                
+                # Handle namespaces in XML (maven pom usually has one)
+                # {http://maven.apache.org/POM/4.0.0}project
+                ns = ""
+                if root.tag.startswith("{"):
+                    ns = root.tag.split("}")[0] + "}"
+                
+                # Extract properties
+                properties = {}
+                props_node = root.find(f"{ns}properties")
+                if props_node is not None:
+                    for child in props_node:
+                        # localized tag name
+                        tag = child.tag.replace(ns, "")
+                        properties[tag] = child.text
+
+                # Extract dependencies
+                deps_node = root.find(f"{ns}dependencies")
+                if deps_node is not None:
+                    for dep in deps_node.findall(f"{ns}dependency"):
+                        group_id = dep.find(f"{ns}groupId")
+                        artifact_id = dep.find(f"{ns}artifactId")
+                        version_node = dep.find(f"{ns}version")
+                        
+                        if group_id is not None and artifact_id is not None:
+                            g = resolve_property(group_id.text, properties)
+                            a = resolve_property(artifact_id.text, properties)
+                            v = None
+                            if version_node is not None:
+                                v = resolve_property(version_node.text, properties)
+                            
+                            # If version is missing, it might be managed by parent (not handled here completely)
+                            # or spring boot starter (implicit).
+                            
+                            full_name = f"{g}:{a}"
+                            found_deps.append(Dependency(name=full_name, version=v, type="maven", source="manifest"))
+
+            except Exception as e:
+                print(f"[!] Error reading {p_file}: {e}")
+                
+        return found_deps
 
     def _scan_code_imports(self, existing_deps: List[Dependency]) -> List[Dependency]:
         """

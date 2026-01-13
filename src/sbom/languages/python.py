@@ -83,7 +83,9 @@ class PythonScanner(BaseLanguageScanner):
         std_lib = {
             "os", "sys", "re", "json", "math", "datetime", "time", "random", "logging", "typing",
             "collections", "itertools", "functools", "pathlib", "subprocess", "ast", "abc",
-            "argparse", "unittest", "threading", "multiprocessing", "socket", "email"
+            "argparse", "unittest", "threading", "multiprocessing", "socket", "email", "shutil", 
+            "glob", "platform", "signal", "tempfile", "io", "copy", "warnings", "traceback",
+            "csv", "zipfile", "tarfile", "concurrent"
         }
         
         new_deps = []
